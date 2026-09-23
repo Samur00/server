@@ -12,12 +12,12 @@ public:
     Q_INVOKABLE bool start(unsigned port);
     bool is_work();
 private:
-    QTcpServer* tcpServer=new QTcpServer;
-    QVector<QTcpSocket*> hosts;
+    QTcpServer* m_tcpServer=new QTcpServer;
+    QVector<QTcpSocket*> m_hosts;
 private slots:
     void connected();
-    void read(QTcpSocket* sender);
-    void disconnected(QTcpSocket* sender);//имена connect disconnect заняты в ку обжекте, может стоило ко всем функциям добавлять my_ или что то такое
+    void read();
+    void disconnected();//имена connect disconnect заняты в ку обжекте, может стоило ко всем функциям добавлять my_ или что то такое
 };
 
 #endif // MYSERVER_H

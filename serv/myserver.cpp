@@ -1,45 +1,47 @@
 #include "myserver.h"
 MyServer::MyServer(){
-    connect(tcpServer, &QTcpServer::newConnection, this, &MyServer::connected);
+    connect(m_tcpServer, &QTcpServer::newConnection, this, &MyServer::connected);
 }
 bool MyServer::start(unsigned port){
-    if(tcpServer->isListening()){
+    if(m_tcpServer->isListening()){
         return false;
     }
-    return tcpServer->listen(QHostAddress::Any,port);
+    return m_tcpServer->listen(QHostAddress::Any,port);
 }
 bool MyServer::is_work(){
-    return tcpServer->isListening();
+    return m_tcpServer->isListening();
 }
 void MyServer::connected(){
-    QTcpSocket *host= tcpServer->nextPendingConnection();
-    hosts.append(host);
-    connect(host,&QTcpSocket::readyRead,this,[this, host]() {read(host);});
-    connect(host,&QTcpSocket::disconnected,this,[this, host]() {disconnected(host);});
+    QTcpSocket *host= m_tcpServer->nextPendingConnection();
+    m_hosts.append(host);
+    connect(host,&QTcpSocket::readyRead,this,&MyServer::read);
+    connect(host,&QTcpSocket::disconnected,this,&MyServer::disconnected);
     //host->readyRead();
-    qDebug()<<"host connected "<<host->peerAddress().toString()<<Qt::endl;
-    qDebug()<<"host name "<<host->peerName()<<Qt::endl;
+    qDebug()<<"host connected "<<host->peerAddress().toString();
+    qDebug()<<"host name "<<host->peerName();
 
     host->write("Darova!");
 }
-void MyServer::read(QTcpSocket* sender){
-    QByteArray data = sender->readAll();
+void MyServer::read(){
+
+    //this->sender();
+    auto *clientSocket= qobject_cast<QTcpSocket*>(sender());
+    if(!clientSocket){
+        return;
+    }
+    QByteArray data = clientSocket->readAll();
     qDebug() << "Server received:" << QString::fromUtf8(data);
-    for (QTcpSocket *host : hosts){
-        if(host!=sender){
+    for (QTcpSocket *host : m_hosts){
+        if(host!=clientSocket){
             host->write(data);
         }
     }
 }
-void MyServer::disconnected(QTcpSocket* sender){
-    hosts.removeOne(sender);//возвращает тру если удалил успешно
-    sender->deleteLater();
-    /*
-    for (size_t i=0;i<hosts.size();i++){
-        if(hosts[i]==sender){
-            hosts.removeAt(i);
-            break;
-        }
+void MyServer::disconnected(){
+    auto *clientSocket= qobject_cast<QTcpSocket*>(sender());
+    if(!clientSocket){
+        return;
     }
-    */
+    m_hosts.removeOne(clientSocket);//возвращает тру если удалил успешно
+    clientSocket->deleteLater();
 }
