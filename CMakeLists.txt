@@ -20,7 +20,6 @@ qt_add_executable(appserver
 qt_add_qml_module(appserver
     URI server
     QML_FILES
-        interface/Main.qml
         SOURCES serv/myserver.h serv/myserver.cpp
 )
 
